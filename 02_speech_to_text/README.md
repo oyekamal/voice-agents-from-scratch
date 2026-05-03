@@ -144,7 +144,7 @@ Stop with **Ctrl+C**.
 - **`(silence)` every line in the streaming script**  -  Wrong or muted mic, or gain too low; fix defaults and permissions ([chapter 01 audio troubleshooting](../01_audio_io/README.md#troubleshooting)).
 - **Empty transcript on a WAV**  -  Near-silent file, wrong sample rate path, or unsupported format - confirm the file plays in another tool.
 - **Download / disk errors**  -  Ensure **`models/whisper/`** is writable and you ran **`download_models`** from **00_start_here**.
-- **ctranslate2 warning (float16 → float32)** — Common when running Whisper on **CPU** (or without efficient FP16): the runtime uses **float32** instead of half precision. **Harmless** for learning; see [`handling_partial_results/CODE.md`](./handling_partial_results/CODE.md#ctranslate2-warning-float16-vs-float32).
+- **ctranslate2 warning (float16 → float32)**  -  Common when running Whisper on **CPU** (or without efficient FP16): the runtime uses **float32** instead of half precision. **Harmless** for learning; see [`handling_partial_results/CODE.md`](./handling_partial_results/CODE.md#ctranslate2-warning-float16-vs-float32).
 
 ---
 

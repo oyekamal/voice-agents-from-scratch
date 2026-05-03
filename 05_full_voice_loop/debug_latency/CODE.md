@@ -30,7 +30,7 @@ Same families as [`blocking_voice_agent`](../blocking_voice_agent/CODE.md): [`re
 
 ### Why `perf_counter` and a row list
 
-The script does **not** print transcripts or replies — it only measures **elapsed seconds per stage**. Each stage follows the same pattern:
+The script does **not** print transcripts or replies  -  it only measures **elapsed seconds per stage**. Each stage follows the same pattern:
 
 1. **`t0 = time.perf_counter()`** right before work begins.
 2. Run one blocking step (mic, STT, LLM, TTS, or playback).
@@ -51,7 +51,7 @@ KOKORO_VOICES = ROOT / "models" / "kokoro" / "voices-v1.0.bin"
 OUT = ROOT / "tmp" / "latency_response.wav"
 ```
 
-**`parents[2]`** is the **repository root** (script lives under **`debug_latency/`**). Paths match [`blocking_voice_agent`](../blocking_voice_agent/CODE.md) except the output WAV name: **`tmp/latency_response.wav`** avoids overwriting **`blocking_response.wav`** if you run both scripts in one session. This script does **not** preflight-check model files or save **`blocking_input.wav`** — failures surface when STT/LLM/TTS load (see [Failure modes](#failure-modes)).
+**`parents[2]`** is the **repository root** (script lives under **`debug_latency/`**). Paths match [`blocking_voice_agent`](../blocking_voice_agent/CODE.md) except the output WAV name: **`tmp/latency_response.wav`** avoids overwriting **`blocking_response.wav`** if you run both scripts in one session. This script does **not** preflight-check model files or save **`blocking_input.wav`**  -  failures surface when STT/LLM/TTS load (see [Failure modes](#failure-modes)).
 
 ---
 
@@ -64,11 +64,11 @@ def main() -> None:
     t_wall = time.perf_counter()
 ```
 
-**`rows`** holds **`(stage name, seconds, Rich color tag)`** for each timed segment. Colors are cosmetic — they make the table scannable in a terminal (green mic, cyan STT, magenta LLM, yellow TTS, blue playback).
+**`rows`** holds **`(stage name, seconds, Rich color tag)`** for each timed segment. Colors are cosmetic  -  they make the table scannable in a terminal (green mic, cyan STT, magenta LLM, yellow TTS, blue playback).
 
 ---
 
-### Stage 1 — Mic capture (fixed 3 seconds)
+### Stage 1  -  Mic capture (fixed 3 seconds)
 
 ```python
 t0 = time.perf_counter()
@@ -76,13 +76,13 @@ audio, sr = record_seconds(3.0, config=AudioInputConfig())
 rows.append(("Mic capture (fixed 3s)", time.perf_counter() - t0, "green"))
 ```
 
-Unlike [`blocking_voice_agent`](../blocking_voice_agent/CODE.md), there is **no** **`--seconds`** flag and **no** Rich confirmation — recording starts as soon as the process reaches this line. **`3.0`** means the **Mic capture** row is always **about three seconds** of wall time (plus OS/audio startup), independent of how long you spoke. That stabilizes comparisons across runs when you care about **STT / LLM / TTS** only.
+Unlike [`blocking_voice_agent`](../blocking_voice_agent/CODE.md), there is **no** **`--seconds`** flag and **no** Rich confirmation  -  recording starts as soon as the process reaches this line. **`3.0`** means the **Mic capture** row is always **about three seconds** of wall time (plus OS/audio startup), independent of how long you spoke. That stabilizes comparisons across runs when you care about **STT / LLM / TTS** only.
 
 [`record_seconds`](../../src/voice_agents/audio/audio_input.py) returns **float32 mono PCM** and **sample rate** from the default input device via [`AudioInputConfig`](../../src/voice_agents/audio/audio_input.py).
 
 ---
 
-### Stage 2 — Speech-to-text
+### Stage 2  -  Speech-to-text
 
 ```python
 t0 = time.perf_counter()
@@ -91,11 +91,11 @@ text = transcribe_samples(audio, sr, config=stt)
 rows.append(("STT", time.perf_counter() - t0, "cyan"))
 ```
 
-[`TranscribeConfig`](../../src/voice_agents/stt/streaming_stt.py) points faster-whisper at **`models/whisper/`**. [`transcribe_samples`](../../src/voice_agents/stt/streaming_stt.py) runs ASR on the full buffer — this row usually dominates when the model is cold or the CPU is busy. **STT** time includes **model load** for this process if weights were not already cached in memory.
+[`TranscribeConfig`](../../src/voice_agents/stt/streaming_stt.py) points faster-whisper at **`models/whisper/`**. [`transcribe_samples`](../../src/voice_agents/stt/streaming_stt.py) runs ASR on the full buffer  -  this row usually dominates when the model is cold or the CPU is busy. **STT** time includes **model load** for this process if weights were not already cached in memory.
 
 ---
 
-### Stage 3 — LLM (empty transcript → `"hello"`)
+### Stage 3  -  LLM (empty transcript → `"hello"`)
 
 ```python
 t0 = time.perf_counter()
@@ -105,13 +105,13 @@ reply = AgentCore(model_path=str(LLM_PATH)).complete(
 rows.append(("LLM", time.perf_counter() - t0, "magenta"))
 ```
 
-**`text or "hello"`** ensures a non-empty user message so the pipeline always reaches TTS and playback — useful for **latency profiling** when the mic picked up silence or STT returned `""`. For a realistic “what did I say?” measurement, speak clearly; otherwise the **LLM** row still reflects a short completion from **`hello`**.
+**`text or "hello"`** ensures a non-empty user message so the pipeline always reaches TTS and playback  -  useful for **latency profiling** when the mic picked up silence or STT returned `""`. For a realistic “what did I say?” measurement, speak clearly; otherwise the **LLM** row still reflects a short completion from **`hello`**.
 
-A **new** [`AgentCore`](../../src/voice_agents/agent/agent_core.py) is constructed each run (same teaching style as blocking). **`max_tokens=128`** is slightly lower than blocking’s **256** — enough for a short reply while keeping the LLM segment bounded.
+A **new** [`AgentCore`](../../src/voice_agents/agent/agent_core.py) is constructed each run (same teaching style as blocking). **`max_tokens=128`** is slightly lower than blocking’s **256**  -  enough for a short reply while keeping the LLM segment bounded.
 
 ---
 
-### Stage 4 — TTS to WAV
+### Stage 4  -  TTS to WAV
 
 ```python
 t0 = time.perf_counter()
@@ -121,11 +121,11 @@ synthesize_to_wav(reply, OUT, config=cfg)
 rows.append(("TTS (WAV)", time.perf_counter() - t0, "yellow"))
 ```
 
-[`TTSConfig`](../../src/voice_agents/tts/streaming_tts.py) and [`pick_voice`](../../src/voice_agents/tts/streaming_tts.py) match the other chapter scripts. [`synthesize_to_wav`](../../src/voice_agents/tts/streaming_tts.py) writes **`tmp/latency_response.wav`** (overwritten each run). The label **TTS (WAV)** separates **synthesis** from **playback** — Kokoro time is separate from reading the file and pushing samples to the device.
+[`TTSConfig`](../../src/voice_agents/tts/streaming_tts.py) and [`pick_voice`](../../src/voice_agents/tts/streaming_tts.py) match the other chapter scripts. [`synthesize_to_wav`](../../src/voice_agents/tts/streaming_tts.py) writes **`tmp/latency_response.wav`** (overwritten each run). The label **TTS (WAV)** separates **synthesis** from **playback**  -  Kokoro time is separate from reading the file and pushing samples to the device.
 
 ---
 
-### Stage 5 — Playback (soundfile + `play_float_mono`)
+### Stage 5  -  Playback (soundfile + `play_float_mono`)
 
 ```python
 t0 = time.perf_counter()
@@ -136,7 +136,7 @@ play_float_mono(np.squeeze(data), int(ssr))
 rows.append(("Playback", time.perf_counter() - t0, "blue"))
 ```
 
-**`soundfile`** is imported **inside** this block so the dependency is only pulled when playback runs. The WAV is read as **float32**, **`np.squeeze`** drops a singleton dimension if needed, and [`play_float_mono`](../../src/voice_agents/audio/audio_output.py) plays through the default output device (same low-level path as other chapters). **Playback** includes **disk read**, **decode**, and **audio output** — useful when comparing to [`play_wav_file`](../../src/voice_agents/audio/audio_output.py) in blocking, which wraps the same stack.
+**`soundfile`** is imported **inside** this block so the dependency is only pulled when playback runs. The WAV is read as **float32**, **`np.squeeze`** drops a singleton dimension if needed, and [`play_float_mono`](../../src/voice_agents/audio/audio_output.py) plays through the default output device (same low-level path as other chapters). **Playback** includes **disk read**, **decode**, and **audio output**  -  useful when comparing to [`play_wav_file`](../../src/voice_agents/audio/audio_output.py) in blocking, which wraps the same stack.
 
 ---
 
@@ -162,7 +162,7 @@ The sum of the five stage rows can be **slightly less** than **Wall total** if t
 | | **debug_latency (this script)** | **blocking_voice_agent** |
 |--|--|--|
 | Recording length | Fixed **3 s** | **`--seconds`** (default **5**) |
-| Before recording | None — starts immediately | Rich **Confirm** |
+| Before recording | None  -  starts immediately | Rich **Confirm** |
 | Input WAV on disk | Not saved | **`tmp/blocking_input.wav`** |
 | Output WAV | **`tmp/latency_response.wav`** | **`tmp/blocking_response.wav`** |
 | Empty STT | **`hello`** fallback → full pipeline | **Exit** before LLM |

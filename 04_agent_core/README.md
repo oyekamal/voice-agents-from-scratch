@@ -111,7 +111,7 @@ uv run python 04_agent_core/simple_agent/simple_agent.py "What is 2+2?"
 
 ### `response_loop/response_loop.py`
 
-**Source:** [`response_loop.py`](./response_loop/response_loop.py) — **Learning deeper:** [`CODE.md`](./response_loop/CODE.md)
+**Source:** [`response_loop.py`](./response_loop/response_loop.py)  -  **Learning deeper:** [`CODE.md`](./response_loop/CODE.md)
 
 **Interactive:** run the command, wait for **`>`**, type a question, press **Enter**, read the answer, repeat. **Exit:** press **Enter** on an empty line at **`>`** (no text typed), or **Ctrl+C**. **Pipe:** `echo "…" | uv run python …` sends one question and exits without prompts.
 
@@ -124,7 +124,7 @@ echo "Hello" | uv run python 04_agent_core/response_loop/response_loop.py
 
 ### `memory/memory.py`
 
-**Source:** [`memory.py`](./memory/memory.py) — **Learning deeper:** [`CODE.md`](./memory/CODE.md)
+**Source:** [`memory.py`](./memory/memory.py)  -  **Learning deeper:** [`CODE.md`](./memory/CODE.md)
 
 After **`You:`**, type normal sentences to the assistant (examples appear when you run it). Ask follow-up questions that need remembering earlier lines. **`quit`** / **`exit`** ends the session.
 

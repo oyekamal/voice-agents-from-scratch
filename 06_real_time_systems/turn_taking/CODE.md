@@ -20,7 +20,7 @@ uv run python 06_real_time_systems/turn_taking/turn_taking.py --dry-run
 
 ## Code walkthrough (`turn_taking.py`)
 
-### Helpers — Qwen-style prompt + silence Llama logs
+### Helpers  -  Qwen-style prompt + silence Llama logs
 
 ```python
 _IM_END = "<|" + "im_end" + "|>"
@@ -74,7 +74,7 @@ def synthesize_sentence_stream(kokoro: Kokoro, text: str, voice: str) -> tuple[n
     return asyncio.run(_kokoro_stream_to_mono(kokoro, text, voice))
 ```
 
-### Session UI — plain dict → Rich `Panel`
+### Session UI  -  plain dict → Rich `Panel`
 
 ```python
 def render_session(session: dict[str, Any]) -> Panel:
@@ -86,9 +86,9 @@ def render_session(session: dict[str, Any]) -> Panel:
     return Panel(body, title="turn_taking (session)", border_style="magenta")
 ```
 
-### `speak_with_optional_barge_in` — same idea as duplex
+### `speak_with_optional_barge_in`  -  same idea as duplex
 
-No barge-in → straight **`play_cancellable_stream`**. Otherwise **`player`** thread + **`InputStream`** + RMS gate with **`LEAD_IN_S`** (ignore mic until playback has run that long, reduces speaker bleed) and **`SUSTAIN_BLOCKS`** consecutive loud blocks above **`RMS_THRESH_BARGE`** before **`cancel.set()`** — same spirit as [`duplex_conversation`](../duplex_conversation/duplex_conversation.py), not a single-sample tripwire.
+No barge-in → straight **`play_cancellable_stream`**. Otherwise **`player`** thread + **`InputStream`** + RMS gate with **`LEAD_IN_S`** (ignore mic until playback has run that long, reduces speaker bleed) and **`SUSTAIN_BLOCKS`** consecutive loud blocks above **`RMS_THRESH_BARGE`** before **`cancel.set()`**  -  same spirit as [`duplex_conversation`](../duplex_conversation/duplex_conversation.py), not a single-sample tripwire.
 
 ```python
 if not use_barge_in:
@@ -125,15 +125,15 @@ with sd.InputStream(...):
 return not cancel.is_set()
 ```
 
-### `run_turn` — one LISTENING → THINKING → SPEAKING cycle
+### `run_turn`  -  one LISTENING → THINKING → SPEAKING cycle
 
-**LISTENING** uses only **`record_mono_seconds`** (which wraps **`sd.rec`** + **`sd.wait`**) — no **`InputStream`** yet, so the mic is not double-opened with PortAudio.
+**LISTENING** uses only **`record_mono_seconds`** (which wraps **`sd.rec`** + **`sd.wait`**)  -  no **`InputStream`** yet, so the mic is not double-opened with PortAudio.
 
 **THINKING → SPEAKING (non–dry-run):** after **`transcribe_audio`**, a **`for piece in llm_stream_text_chunks(...)`** loop appends to a buffer, updates **`last_reply`** for the Rich panel, extracts sentences with **`_SENTENCE_END`** (``([.!?])(?:\s+|$)`` so a trailing ``?`` / ``.`` at end-of-stream still flushes, unlike ``[.!?]\s+`` only), flushes long buffers without punctuation over 200 characters, then **`asyncio.run`** over **`kokoro.create_stream`** per flushed sentence (**`synthesize_sentence_stream`**) and **`speak_with_optional_barge_in`**. State switches to **SPEAKING** before the first sentence is played.
 
 The script also handles **`--dry-run`** (stub strings, no models) and skips empty transcripts.
 
-### Outer loop — Rich Live or plain logs
+### Outer loop  -  Rich Live or plain logs
 
 ```python
 try:
@@ -178,6 +178,6 @@ except KeyboardInterrupt:
 
 ## See also
 
-- [Chapter 06 README](../README.md) — full order and hardware notes.
-- [`duplex_conversation`](../duplex_conversation/CODE.md) — barge-in without full STT/LLM.
+- [Chapter 06 README](../README.md)  -  full order and hardware notes.
+- [`duplex_conversation`](../duplex_conversation/CODE.md)  -  barge-in without full STT/LLM.
 - Session-style **Rich Live** panel is in this script (no separate entrypoint).

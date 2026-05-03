@@ -2,6 +2,8 @@
 
 **Why this chapter exists:** Earlier chapters built **layers** (audio, STT, LLM, TTS, tools, persona). Chapter 09 shows **composition**: each subfolder demonstrates **one glue skill** - how to attach the library pieces into something product-shaped **without** fine-tuning weights.
 
+**Two LLM families, two chat templates:** Some scripts use the repo’s default **Qwen2.5** GGUF with a **Qwen-style** prompt wrapper; others load a **Llama 3.x instruct** GGUF and **must** use the **Llama 3** chat template in code. The weights and the template **must match** - if you point a Qwen template at Llama weights (or the reverse), replies are often garbage. Paths and filenames are spelled out below so you pick the right pair.
+
 **How to read the diagram:** boxes are **prior chapters**; arrows show **what each capstone imports or mirrors**.
 
 ![projects.png](../diagrams/projects.png)

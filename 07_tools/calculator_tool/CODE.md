@@ -33,7 +33,7 @@ _OPS = {
 }
 ```
 
-**Takeaway:** extending the calculator means adding entries here **and** matching branches in **`_eval`**—keep those two in sync.
+**Takeaway:** extending the calculator means adding entries here **and** matching branches in **`_eval`** - keep those two in sync.
 
 ---
 
@@ -65,7 +65,7 @@ def _eval(node: ast.AST) -> float:
     raise ValueError("unsupported expression")
 ```
 
-**Takeaway:** there is **no** **`ast.Name`**, **no** attribute access, **no** function calls—so **`__import__`**-style escapes are impossible from this tree.
+**Takeaway:** there is **no** **`ast.Name`**, **no** attribute access, **no** function calls - so **`__import__`**-style escapes are impossible from this tree.
 
 ---
 

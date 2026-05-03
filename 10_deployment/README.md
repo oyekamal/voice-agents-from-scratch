@@ -2,7 +2,7 @@
 
 **Goals:** Ship a **small HTTP API** on [Modal](https://modal.com) that runs **Llama-2-7B-Chat** as a **GGUF** via **llama-cpp-python** (CUDA on **T4**) and **Kokoro** TTS (**kokoro-onnx**), with weights cached on a **Modal Volume** so cold starts amortize after the first download.
 
-This chapter is **cloud-first** (containers, GPU image, HTTPS endpoint). Chapters **0–9** stay **local-first** (Qwen GGUF under `models/llm/`, etc.). Here we use **TheBloke/Llama-2-7B-Chat-GGUF** (`llama-2-7b-chat.Q4_K_M.gguf`) and the **Llama-2 chat** prompt format—not the Qwen `<|im_start|>` template from [`AgentCore`](../src/voice_agents/agent/agent_core.py).
+This chapter is **cloud-first** (containers, GPU image, HTTPS endpoint). Chapters **0–9** stay **local-first** (Qwen GGUF under `models/llm/`, etc.). Here we use **TheBloke/Llama-2-7B-Chat-GGUF** (`llama-2-7b-chat.Q4_K_M.gguf`) and the **Llama-2 chat** prompt format - not the Qwen `<|im_start|>` template from [`AgentCore`](../src/voice_agents/agent/agent_core.py).
 
 **Deeper dive:** [`modal_chapter/CODE.md`](modal_chapter/CODE.md) walks through the Modal pieces. Source: [`modal_app.py`](modal_app.py).
 
@@ -82,7 +82,7 @@ Expect much slower inference for **7B**.
 
 ## Legacy: local WebSocket echo
 
-For a **local** FastAPI + WebSocket JSON echo (used by the repo **Dockerfile** smoke server), see [`legacy_local/websocket_server.py`](legacy_local/websocket_server.py):
+For a **local** FastAPI + WebSocket JSON echo, see [`legacy_local/websocket_server.py`](legacy_local/websocket_server.py):
 
 ```bash
 uv run python 10_deployment/legacy_local/websocket_server.py

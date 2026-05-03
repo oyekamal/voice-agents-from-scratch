@@ -1,4 +1,4 @@
-# `blocking_voice_agent.py` — code walkthrough
+# `blocking_voice_agent.py`  -  code walkthrough
 
 ## Purpose
 
@@ -7,17 +7,17 @@
 The script runs the **full voice pipeline in order**, and **each step finishes before the next starts**:
 
 1. **Record** your voice for a fixed number of seconds (default **5**).
-2. **Speech-to-text** — Whisper turns the recording into text (**you see `You:`** and the transcript).
-3. **LLM** — [`AgentCore.complete`](../../src/voice_agents/agent/agent_core.py) generates the assistant reply (**you see `Assistant:`**).
-4. **Text-to-speech** — Kokoro writes **`tmp/blocking_response.wav`**.
-5. **Playback** — the WAV plays through your default output device.
+2. **Speech-to-text**  -  Whisper turns the recording into text (**you see `You:`** and the transcript).
+3. **LLM**  -  [`AgentCore.complete`](../../src/voice_agents/agent/agent_core.py) generates the assistant reply (**you see `Assistant:`**).
+4. **Text-to-speech**  -  Kokoro writes **`tmp/blocking_response.wav`**.
+5. **Playback**  -  the WAV plays through your default output device.
 
 Nothing streams “live” during the LLM step: you wait until the **whole** reply exists before TTS runs. That makes debugging easy (same idea as [chapter 00](../../00_start_here/) demo), but **time-to-first-sound** is higher than in [`streaming_voice_agent`](../streaming_voice_agent/CODE.md).
 
 ### Files on disk
 
-- **`tmp/blocking_input.wav`** — your microphone capture (debuggable in any player).
-- **`tmp/blocking_response.wav`** — synthesized reply.
+- **`tmp/blocking_input.wav`**  -  your microphone capture (debuggable in any player).
+- **`tmp/blocking_response.wav`**  -  synthesized reply.
 
 ---
 
@@ -60,7 +60,7 @@ KOKORO_VOICES = MODELS / "kokoro" / "voices-v1.0.bin"
 OUT_WAV = ROOT / "tmp" / "blocking_response.wav"
 ```
 
-**`parents[2]`** is the **repository root** (script lives under **`blocking_voice_agent/`**). **`MODELS`** keeps Whisper cache, GGUF, and Kokoro paths in one place. **`OUT_WAV`** is always the same output path each run — it **overwrites** the previous synthesized reply.
+**`parents[2]`** is the **repository root** (script lives under **`blocking_voice_agent/`**). **`MODELS`** keeps Whisper cache, GGUF, and Kokoro paths in one place. **`OUT_WAV`** is always the same output path each run  -  it **overwrites** the previous synthesized reply.
 
 ---
 
@@ -72,7 +72,7 @@ ap.add_argument("--seconds", type=float, default=5.0, help="Recording length")
 args = ap.parse_args()
 ```
 
-**`--seconds`** only affects **mic capture** — not STT model size or LLM **`max_tokens`**. Shorter clips reduce wait time but give Whisper less audio context (fine for short questions).
+**`--seconds`** only affects **mic capture**  -  not STT model size or LLM **`max_tokens`**. Shorter clips reduce wait time but give Whisper less audio context (fine for short questions).
 
 ---
 
@@ -106,7 +106,7 @@ audio, sr = record_seconds(args.seconds, config=AudioInputConfig())
 save_wav(ROOT / "tmp/blocking_input.wav", audio, sr)
 ```
 
-[`record_seconds`](../../src/voice_agents/audio/audio_input.py) returns **float32 PCM** and **sample rate** from the **default input device** ([`AudioInputConfig`](../../src/voice_agents/audio/audio_input.py) defaults). [`save_wav`](../../src/voice_agents/audio/audio_input.py) writes **`tmp/blocking_input.wav`** so you can **replay or inspect** what Whisper heard — essential when debugging bad transcripts.
+[`record_seconds`](../../src/voice_agents/audio/audio_input.py) returns **float32 PCM** and **sample rate** from the **default input device** ([`AudioInputConfig`](../../src/voice_agents/audio/audio_input.py) defaults). [`save_wav`](../../src/voice_agents/audio/audio_input.py) writes **`tmp/blocking_input.wav`** so you can **replay or inspect** what Whisper heard  -  essential when debugging bad transcripts.
 
 ---
 
@@ -118,7 +118,7 @@ text = transcribe_samples(audio, sr, config=stt)
 console.print("[bold]You:[/]", text)
 ```
 
-[`TranscribeConfig`](../../src/voice_agents/stt/streaming_stt.py) points **faster-whisper** at **`models/whisper/`** for downloaded weights. [`transcribe_samples`](../../src/voice_agents/stt/streaming_stt.py) runs ASR on the in-memory buffer (same audio you saved). Whatever string comes back is treated as the **user utterance** for the LLM — there is no separate “intent” layer in this script.
+[`TranscribeConfig`](../../src/voice_agents/stt/streaming_stt.py) points **faster-whisper** at **`models/whisper/`** for downloaded weights. [`transcribe_samples`](../../src/voice_agents/stt/streaming_stt.py) runs ASR on the in-memory buffer (same audio you saved). Whatever string comes back is treated as the **user utterance** for the LLM  -  there is no separate “intent” layer in this script.
 
 ---
 
@@ -142,13 +142,13 @@ reply = AgentCore(model_path=str(LLM_PATH)).complete(
 console.print("[bold]Assistant:[/]", reply)
 ```
 
-- A **new** [`AgentCore`](../../src/voice_agents/agent/agent_core.py) is constructed for this call — simple for teaching (each run is self-contained). In production you would typically **reuse** one instance to avoid reloading the GGUF.
+- A **new** [`AgentCore`](../../src/voice_agents/agent/agent_core.py) is constructed for this call  -  simple for teaching (each run is self-contained). In production you would typically **reuse** one instance to avoid reloading the GGUF.
 
-- **[`PromptEngine()`](../../src/voice_agents/agent/prompt_engine.py)** uses the library **default system prompt**; no multi-turn session — **`complete`** still **appends** user/assistant lines to that engine’s memory after the call (harmless for a single shot).
+- **[`PromptEngine()`](../../src/voice_agents/agent/prompt_engine.py)** uses the library **default system prompt**; no multi-turn session  -  **`complete`** still **appends** user/assistant lines to that engine’s memory after the call (harmless for a single shot).
 
 - **`max_tokens=256`** caps reply length; raise it if answers truncate.
 
-[`qwen25_chat_prompt`](../../src/voice_agents/agent/agent_core.py) formatting is applied **inside** **`complete`** — same contract as [chapter 04](../../04_agent_core/).
+[`qwen25_chat_prompt`](../../src/voice_agents/agent/agent_core.py) formatting is applied **inside** **`complete`**  -  same contract as [chapter 04](../../04_agent_core/).
 
 ---
 
@@ -172,7 +172,7 @@ synthesize_to_wav(reply, OUT_WAV, config=cfg)
 play_wav_file(OUT_WAV)
 ```
 
-[`play_wav_file`](../../src/voice_agents/audio/audio_output.py) reads the WAV and calls **`play_float_mono`**: **DC removal**, **cosine fades**, **trailing silence**, and **`sounddevice`** with **`latency="high"`** — same smoothing as [**`streaming_voice_agent`**](../streaming_voice_agent/CODE.md) chunk playback.
+[`play_wav_file`](../../src/voice_agents/audio/audio_output.py) reads the WAV and calls **`play_float_mono`**: **DC removal**, **cosine fades**, **trailing silence**, and **`sounddevice`** with **`latency="high"`**  -  same smoothing as [**`streaming_voice_agent`**](../streaming_voice_agent/CODE.md) chunk playback.
 
 ---
 
@@ -194,7 +194,7 @@ play_wav_file(OUT_WAV)
 | | **Blocking (this script)** | **Streaming** |
 |--|--|--|
 | User input | Always **mic** + fixed seconds | **Mic** or **CLI text** |
-| LLM | **`complete`** — whole reply at once | **`stream_tokens`** — fragments |
+| LLM | **`complete`**  -  whole reply at once | **`stream_tokens`**  -  fragments |
 | TTS | One **`synthesize_to_wav`** | Many **`Kokoro.create`** per sentence |
 | When speech starts | After **full** pipeline stage 4–5 | Often **during** generation |
 

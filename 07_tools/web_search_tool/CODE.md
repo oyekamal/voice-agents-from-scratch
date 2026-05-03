@@ -2,7 +2,7 @@
 
 Production stacks call a **search API** with structured hits. This tutorial script **POST**s to **DuckDuckGo lite** and parses **their** HTML table: each row exposes a **`result-link`** title and a **`result-snippet`** blurb. That skips the huge region-selector block at the top of the page (what you saw when we naïvely stripped the whole document to **400** characters).
 
-If DuckDuckGo changes class names or table layout, **`_parse_lite_results`** returns nothing and you get an explicit fallback message—that is still the **scraping is fragile** lesson.
+If DuckDuckGo changes class names or table layout, **`_parse_lite_results`** returns nothing and you get an explicit fallback message - that is still the **scraping is fragile** lesson.
 
 ---
 
@@ -55,7 +55,7 @@ Same transport as before: form **`q`**, **`User-Agent`**, redirects, timeout, **
 
 ### 3. Regex hooks on DuckDuckGo’s result table
 
-Titles come from **`class='result-link'`** (or double quotes—patterns allow both). Snippets are the inner HTML of **`td.result-snippet`**, then inner tags are stripped and entities decoded with **`html.unescape`**.
+Titles come from **`class='result-link'`** (or double quotes - patterns allow both). Snippets are the inner HTML of **`td.result-snippet`**, then inner tags are stripped and entities decoded with **`html.unescape`**.
 
 ```python
 _RE_TITLE = re.compile(r"""class=['"]result-link['"]>([^<]*)</a>""", re.IGNORECASE)
@@ -75,7 +75,7 @@ def _parse_lite_results(page: str) -> list[tuple[str, str]]:
     return pairs
 ```
 
-**Takeaway:** this is **not** a DOM tree walk—regex is brittle, but keeps the chapter dependency-free. A real app would use **`html.parser`**, **`lxml`**, or an API.
+**Takeaway:** this is **not** a DOM tree walk - regex is brittle, but keeps the chapter dependency-free. A real app would use **`html.parser`**, **`lxml`**, or an API.
 
 ---
 

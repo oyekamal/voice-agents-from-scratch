@@ -96,7 +96,7 @@ def _geocode_town(town: str) -> tuple[float, float, str]:
     return lat, lon, place
 ```
 
-**Takeaway:** ambiguous names (“Springfield”) always resolve to **Open-Meteo’s first hit**—in production you would disambiguate (list choices, ask the user, or use structured geocoder metadata).
+**Takeaway:** ambiguous names (“Springfield”) always resolve to **Open-Meteo’s first hit** - in production you would disambiguate (list choices, ask the user, or use structured geocoder metadata).
 
 ---
 

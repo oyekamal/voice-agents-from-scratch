@@ -6,6 +6,8 @@ Build a fully local, conversational voice agent using open-source models - no AP
 You speak → Whisper transcribes → LLM replies → Kokoro speaks back
 ```
 
+Shared vocabulary (**PCM**, **STT**, **TTS**, **VAD**, …): [GLOSSARY.md](../GLOSSARY.md).
+
 ---
 
 ## Table of Contents
@@ -23,8 +25,7 @@ You speak → Whisper transcribes → LLM replies → Kokoro speaks back
   - [Orchestration in main](#orchestration-in-main)
   - [File order vs runtime](#file-order-vs-runtime)
 - [Latency Guide](#latency-guide)
-- [Next Steps](#next-steps)
-- [Next](#next)
+- [Next steps](#next-steps)
 
 ---
 
@@ -317,18 +318,14 @@ The blocking pipeline in the original script measured **~3000 ms**. The streamin
 
 ---
 
-## Next Steps
+## Next steps
 
-The scripts in this repo are ordered by complexity. After this one, the natural progression is:
+**Following chapter:** [Chapter 01 - Audio I/O](../01_audio_io/README.md)  -  practice microphones, speakers, saving WAVs, streaming mic blocks, and a simple RMS threshold demo before you dive into Whisper in chapter 02.
 
-- **VAD (Voice Activity Detection)** - stop recording when you stop speaking instead of waiting a fixed 5 seconds. Cuts perceived latency by 1–3 seconds in normal use.
-- **Continuous conversation loop** - instead of one-shot, keep the mic open and maintain a chat history so the agent remembers context.
-- **Interrupt handling** - let the user speak while the agent is speaking (barge-in), cancel the current response, and start a new one.
-- **Larger LLM** - swap `qwen2.5-0.5b` for `qwen2.5-3b` or `mistral-7b` for much better reply quality at the cost of ~200ms more latency per turn.
-- **Streaming Whisper** - process audio in rolling 30ms windows so transcription begins while the user is still speaking.
+The scripts in this repo are ordered by complexity. After this one, other natural directions are:
 
----
-
-## Next
-
-[Chapter 01 - Audio I/O](../01_audio_io/README.md)  -  practice microphones, speakers, saving WAVs, streaming mic blocks, and a simple RMS threshold demo before you dive into Whisper in chapter 02.
+- **VAD (Voice Activity Detection)**  -  stop recording when you stop speaking instead of waiting a fixed 5 seconds. Cuts perceived latency by 1–3 seconds in normal use.
+- **Continuous conversation loop**  -  instead of one-shot, keep the mic open and maintain a chat history so the agent remembers context.
+- **Interrupt handling**  -  let the user speak while the agent is speaking (barge-in), cancel the current response, and start a new one.
+- **Larger LLM**  -  swap `qwen2.5-0.5b` for `qwen2.5-3b` or `mistral-7b` for much better reply quality at the cost of ~200ms more latency per turn.
+- **Streaming Whisper**  -  process audio in rolling 30ms windows so transcription begins while the user is still speaking.

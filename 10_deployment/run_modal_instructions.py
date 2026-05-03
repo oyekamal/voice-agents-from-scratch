@@ -5,7 +5,7 @@ from __future__ import annotations
 
 def main() -> None:
     print(
-        "Chapter 10 — Modal deployment\n\n"
+        "Chapter 10  -  Modal deployment\n\n"
         "  1. uv sync --extra deploy\n"
         "  2. uv run modal setup          # if not already authenticated\n"
         "  3. uv run modal deploy 10_deployment/modal_app.py\n\n"

@@ -67,7 +67,7 @@ SYSTEM_PROMPT = "You are a helpful, concise voice assistant."
 
 SR_MIC = 16_000
 BLOCK = 512
-# Barge-in: same idea as duplex_conversation — lead-in ignores speaker bleed; sustained loud blocks
+# Barge-in: same idea as duplex_conversation  -  lead-in ignores speaker bleed; sustained loud blocks
 # avoids one noisy sample cancelling the rest of the reply.
 LEAD_IN_S = 1.0
 SUSTAIN_BLOCKS = 4

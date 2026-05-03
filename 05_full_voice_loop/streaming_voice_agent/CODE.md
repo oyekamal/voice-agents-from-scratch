@@ -1,4 +1,4 @@
-# `streaming_voice_agent.py` — code walkthrough
+# `streaming_voice_agent.py`  -  code walkthrough
 
 ## Purpose
 
@@ -8,14 +8,14 @@ This script still does **STT → LLM → TTS → speakers**, but the **LLM outpu
 
 So you often **hear the first sentence sooner** than in the fully blocking [`blocking_voice_agent`](../blocking_voice_agent/CODE.md) (which waits for one big **`complete`** then one WAV).
 
-This is **not** full-duplex (no barge-in, no overlapping mic while speaking) — see [chapter 06](../../06_real_time_systems/) for that.
+This is **not** full-duplex (no barge-in, no overlapping mic while speaking)  -  see [chapter 06](../../06_real_time_systems/) for that.
 
 ### Two ways to give “user text”
 
 | Mode | What happens |
 |------|----------------|
 | **No CLI args** | Records **5 seconds** from the mic, runs Whisper, uses that as **`You:`** text. |
-| **Words after the script path** | Skips recording — those words are **`You:`** text directly (good for quick tests without noise). |
+| **Words after the script path** | Skips recording  -  those words are **`You:`** text directly (good for quick tests without noise). |
 
 Example: `uv run python …/streaming_voice_agent.py What is 2+2?`
 
@@ -70,8 +70,8 @@ else:
 
 | Branch | Meaning |
 |--------|---------|
-| **CLI words** | Joined with spaces — easy way to test **streaming + TTS** without mic noise or VAD. |
-| **No args** | **5.0 s** recording, then Whisper — same STT stack as [`blocking_voice_agent`](../blocking_voice_agent/CODE.md), fixed duration. |
+| **CLI words** | Joined with spaces  -  easy way to test **streaming + TTS** without mic noise or VAD. |
+| **No args** | **5.0 s** recording, then Whisper  -  same STT stack as [`blocking_voice_agent`](../blocking_voice_agent/CODE.md), fixed duration. |
 
 If **`text`** is empty after STT, the script exits before loading the LLM.
 
@@ -85,7 +85,7 @@ engine = PromptEngine()
 for piece in agent.stream_tokens(text, engine=engine, max_tokens=256):
 ```
 
-[`AgentCore.stream_tokens`](../../src/voice_agents/agent/agent_core.py) calls **`llama-cpp-python`** with **`stream=True`**. Each **`piece`** is a **small string fragment** (often a few characters) from the assistant continuation — **not** a full sentence. The script **concatenates** those fragments into a growing **`buf`** so it can look for **sentence boundaries** in accumulated text.
+[`AgentCore.stream_tokens`](../../src/voice_agents/agent/agent_core.py) calls **`llama-cpp-python`** with **`stream=True`**. Each **`piece`** is a **small string fragment** (often a few characters) from the assistant continuation  -  **not** a full sentence. The script **concatenates** those fragments into a growing **`buf`** so it can look for **sentence boundaries** in accumulated text.
 
 [`PromptEngine`](../../src/voice_agents/agent/prompt_engine.py) supplies the **system prompt** and **memory** rules; after the stream finishes, **`stream_tokens`** appends the usual **`User:`** / **`Assistant:`** lines to memory (same contract as **`complete`**).
 
@@ -98,7 +98,7 @@ k = Kokoro(str(KOKORO_MODEL), str(KOKORO_VOICES))
 voice = "af_heart" if "af_heart" in k.get_voices() else k.get_voices()[0]
 ```
 
-One **`Kokoro`** object is reused for every **`create`** call — avoids reloading ONNX for each sentence chunk. **`af_heart`** is preferred when present; otherwise the **first** voice id from the bundle is used (deterministic fallback).
+One **`Kokoro`** object is reused for every **`create`** call  -  avoids reloading ONNX for each sentence chunk. **`af_heart`** is preferred when present; otherwise the **first** voice id from the bundle is used (deterministic fallback).
 
 ---
 
@@ -118,9 +118,9 @@ while True:
         _play_kokoro(k, voice, chunk)
 ```
 
-- **Pattern `[.!?]\s+`** means: punctuation that ends a sentence **plus** at least one whitespace character (space, newline, etc.). You need that whitespace so **`3.14`** does not flush after **`3.`** alone. Abbreviations (**`Dr.`**) can still flush early — this tutorial keeps the regex simple on purpose.
+- **Pattern `[.!?]\s+`** means: punctuation that ends a sentence **plus** at least one whitespace character (space, newline, etc.). You need that whitespace so **`3.14`** does not flush after **`3.`** alone. Abbreviations (**`Dr.`**) can still flush early  -  this tutorial keeps the regex simple on purpose.
 
-- **`buf[: m.end()]`** is only the text **through** that delimiter — **not** the start of the next sentence still arriving from the LLM. Earlier versions cleared **`buf`** entirely on each match and fed **everything** to Kokoro, which included **half of the next sentence** and sounded like a **garbled word** between clips.
+- **`buf[: m.end()]`** is only the text **through** that delimiter  -  **not** the start of the next sentence still arriving from the LLM. Earlier versions cleared **`buf`** entirely on each match and fed **everything** to Kokoro, which included **half of the next sentence** and sounded like a **garbled word** between clips.
 
 - **`buf[m.end():]`** keeps the **remainder** (next sentence fragment) for more tokens.
 
@@ -138,7 +138,7 @@ if len(buf) > 200:
         _play_kokoro(k, voice, chunk)
 ```
 
-If the model **never** hits **`[.!?]\s+`** (long run-on sentence, unusual formatting), **`buf`** could grow without bound. This branch **forces** one spoken chunk and clears **`buf`**. Playback may start **mid-sentence** — acceptable escape hatch for stability.
+If the model **never** hits **`[.!?]\s+`** (long run-on sentence, unusual formatting), **`buf`** could grow without bound. This branch **forces** one spoken chunk and clears **`buf`**. Playback may start **mid-sentence**  -  acceptable escape hatch for stability.
 
 ---
 
@@ -160,7 +160,7 @@ audio, sr = k.create(text, voice=voice, speed=1.0)
 play_float_mono(audio, int(sr))
 ```
 
-**`Kokoro.create`** returns **mono float samples** and the sample rate (same idea as in **`synthesize_to_wav`**, but no WAV file). **[`play_float_mono`](../../src/voice_agents/audio/audio_output.py)** applies **DC removal**, **cosine fades**, **trailing silence**, and stable **`sounddevice`** settings — **not** raw **`sd.play`**, so chunk boundaries behave like **[`blocking_voice_agent`](../blocking_voice_agent/CODE.md)** playback.
+**`Kokoro.create`** returns **mono float samples** and the sample rate (same idea as in **`synthesize_to_wav`**, but no WAV file). **[`play_float_mono`](../../src/voice_agents/audio/audio_output.py)** applies **DC removal**, **cosine fades**, **trailing silence**, and stable **`sounddevice`** settings  -  **not** raw **`sd.play`**, so chunk boundaries behave like **[`blocking_voice_agent`](../blocking_voice_agent/CODE.md)** playback.
 
 ---
 
@@ -168,7 +168,7 @@ play_float_mono(audio, int(sr))
 
 | | [`blocking_voice_agent`](../blocking_voice_agent/CODE.md) | **`streaming_voice_agent`** |
 |--|--|--|
-| LLM call | **`complete`** — one blocking generation | **`stream_tokens`** — many small **`piece`** strings |
+| LLM call | **`complete`**  -  one blocking generation | **`stream_tokens`**  -  many small **`piece`** strings |
 | TTS | One **`synthesize_to_wav`** then **`play_wav_file`** | Many **`Kokoro.create`** + **`play_float_mono`** per sentence |
 | When you hear speech | After **full** reply + full WAV | Often **before** the model finishes all tokens (first sentences first) |
 

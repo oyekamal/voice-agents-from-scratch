@@ -104,7 +104,7 @@ def play_cancellable_stream(
         blocksize=blocksize,
         latency="high",
     ) as stream:
-        # ``with`` starts the stream; there is no ``OutputStream.wait()`` — block until inactive.
+        # ``with`` starts the stream; there is no ``OutputStream.wait()``  -  block until inactive.
         while stream.active:
             time.sleep(0.01)
     if cancel is not None and cancel.is_set():

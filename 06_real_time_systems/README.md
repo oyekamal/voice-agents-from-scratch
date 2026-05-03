@@ -1,6 +1,8 @@
 # Chapter 06 - Real-time systems
 
-This chapter uses **the same models as chapter 05** (Whisper, Qwen GGUF, Kokoro) but **does not import [`voice_agents`](../src/voice_agents/)**  -  each script wires **faster-whisper**, **llama-cpp-python**, **kokoro-onnx**, and **sounddevice** explicitly so you see the control flow (threads, RMS gate, chunked playback, FSM).
+This chapter uses **the same models as chapter 05** (Whisper, Qwen GGUF, Kokoro) but **does not import [`voice_agents`](../src/voice_agents/)**  -  each script wires **faster-whisper**, **llama-cpp-python**, **kokoro-onnx**, and **sounddevice** explicitly so you see the control flow (threads, **RMS gate** = loudness threshold on each mic block, chunked playback, **FSM** = finite state machine: explicit phases like LISTENING → THINKING → SPEAKING).
+
+**Headphones and barge-in:** When the agent plays through speakers, sound can leak back into the microphone (**acoustic echo**). That can look like speech to a simple RMS gate and trigger a false **barge-in** (cancel playback). Prefer **headphones** for duplex and barge-in demos, or keep playback volume low, as in the troubleshooting notes below.
 
 Shared helpers live only under this chapter: [`_model_paths.py`](./_model_paths.py), [`_audio_chunks.py`](./_audio_chunks.py).
 

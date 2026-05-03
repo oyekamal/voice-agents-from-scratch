@@ -4,7 +4,7 @@ While the agent **speaks**, you often still want the **microphone path** alive s
 
 ## Runnable
 
-**[`duplex_conversation.py`](./duplex_conversation.py)** synthesizes a **long** Kokoro utterance, plays it with **chunked** `sounddevice`, and runs an **`InputStream`** RMS monitor. When RMS stays above a threshold **during playback**, it sets **`threading.Event`** and stops — **real audio**, not prints.
+**[`duplex_conversation.py`](./duplex_conversation.py)** synthesizes a **long** Kokoro utterance, plays it with **chunked** `sounddevice`, and runs an **`InputStream`** RMS monitor. When RMS stays above a threshold **during playback**, it sets **`threading.Event`** and stops  -  **real audio**, not prints.
 
 ```bash
 uv run python 06_real_time_systems/duplex_conversation/duplex_conversation.py
@@ -45,7 +45,7 @@ samples, play_sr = k.create(long_text, voice=voice, speed=1.0)
 audio = np.asarray(samples, dtype=np.float32).squeeze()
 ```
 
-### 3. Events — cancel playback vs “should mic matter?”
+### 3. Events  -  cancel playback vs “should mic matter?”
 
 ```python
 thresh = 0.06
@@ -55,7 +55,7 @@ playback_on = threading.Event()
 
 **`playback_on`** avoids treating room noise as barge-in **before** TTS starts.
 
-### 4. Mic callback — only while `playback_on`
+### 4. Mic callback  -  only while `playback_on`
 
 ```python
 def mic_cb(indata, frames, t, status) -> None:
@@ -67,7 +67,7 @@ def mic_cb(indata, frames, t, status) -> None:
         cancel.set()
 ```
 
-### 5. Playback thread — chunked play respects `cancel`
+### 5. Playback thread  -  chunked play respects `cancel`
 
 ```python
 def runner() -> None:
@@ -80,7 +80,7 @@ def runner() -> None:
         console.print("[green]Finished[/] ...")
 ```
 
-### 6. Main — mic stream wraps playback thread
+### 6. Main  -  mic stream wraps playback thread
 
 ```python
 with sd.InputStream(
@@ -103,7 +103,7 @@ The **`InputStream`** stays open for the whole **`join`**, so **`mic_cb`** can f
 
 1. **`threading.Event`** (`cancel`) shared between playback and monitor.
 2. **Mic callback** computes RMS; playback thread runs **`play_chunked`** from [`_audio_chunks.py`](../_audio_chunks.py).
-3. Cooperative cancel **between chunks** — same idea as [`interruption_handling`](../interruption_handling/CODE.md), which uses a **prompt** instead of RMS.
+3. Cooperative cancel **between chunks**  -  same idea as [`interruption_handling`](../interruption_handling/CODE.md), which uses a **prompt** instead of RMS.
 
 ---
 
@@ -139,7 +139,7 @@ def play_chunked(
     return True
 ```
 
-**`record_mono_seconds`** (same file) — **`LISTENING`** in **`turn_taking`**:
+**`record_mono_seconds`** (same file)  -  **`LISTENING`** in **`turn_taking`**:
 
 ```python
 def record_mono_seconds(duration_s: float, *, sample_rate: int = _SR_DEFAULT) -> tuple[np.ndarray, int]:
@@ -154,4 +154,4 @@ def record_mono_seconds(duration_s: float, *, sample_rate: int = _SR_DEFAULT) ->
 ## See also
 
 - [Chapter 06 README](../README.md)
-- [`interruption_handling`](../interruption_handling/CODE.md) — WAV + **Rich** prompt cancel.
+- [`interruption_handling`](../interruption_handling/CODE.md)  -  WAV + **Rich** prompt cancel.

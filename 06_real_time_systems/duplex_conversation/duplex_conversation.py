@@ -74,7 +74,7 @@ def main() -> None:
     )
     with console.status(
         "[bold yellow]Step 1/2:[/] Synthesizing speech with Kokoro… "
-        "[dim](CPU-bound; can take a while — spinner shows it is still working)[/]"
+        "[dim](CPU-bound; can take a while  -  spinner shows it is still working)[/]"
     ):
         samples, play_sr = k.create(long_text, voice=voice, speed=1.0)
     console.print("[green]Step 1 done.[/] [bold]Step 2/2:[/] opening mic stream and starting playback…\n")
@@ -119,7 +119,7 @@ def main() -> None:
             cancel.set()
 
     console.print(
-        f"[bold]Duplex demo[/]  —  after [cyan]{LEAD_IN_S:.1f}s[/] of playback, speak toward the mic to stop  |  "
+        f"[bold]Duplex demo[/]   -   after [cyan]{LEAD_IN_S:.1f}s[/] of playback, speak toward the mic to stop  |  "
         f"barge-in: RMS ≥ [cyan]{THRESH_RMS}[/] or peak ≥ [cyan]{THRESH_RMS * PEAK_FACTOR:.3f}[/], "
         f"[cyan]{SUSTAIN_BLOCKS}[/] blocks (brief dips OK) [bold]or[/] peak ≥ [cyan]{SHOUT_PEAK}[/] for [cyan]{SHOUT_BLOCKS}[/] blocks  |  "
         f"[dim]prefer headphones[/]"
@@ -134,7 +134,7 @@ def main() -> None:
         playback_on.clear()
         if cancel.is_set():
             console.print(
-                "[yellow]Interrupted[/] — sustained loud mic input crossed the threshold "
+                "[yellow]Interrupted[/]  -  sustained loud mic input crossed the threshold "
                 "(see printed settings; headphones reduce false stops from speaker bleed)."
             )
         elif finished:

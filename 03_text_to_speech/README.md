@@ -136,7 +136,7 @@ uv run python 03_text_to_speech/streaming_tts/streaming_tts.py Streaming playbac
 
 ### `latency_optimization/latency_optimization.py`
 
-**Source:** [`latency_optimization.py`](./latency_optimization/latency_optimization.py) — **Learning deeper:** [`CODE.md`](./latency_optimization/CODE.md)
+**Source:** [`latency_optimization.py`](./latency_optimization/latency_optimization.py)  -  **Learning deeper:** [`CODE.md`](./latency_optimization/CODE.md)
 
 One **`Kokoro.create`** call wrapped in **`perf_counter`**. The Rich table shows **audio duration** (playback length of the PCM at the model sample rate), **synthesis wall time** (compute only, no disk or speaker), and **RTF** = wall time ÷ duration (below 1 means faster than real-time playback). Full definitions and a worked example are in [`CODE.md`](./latency_optimization/CODE.md).
 

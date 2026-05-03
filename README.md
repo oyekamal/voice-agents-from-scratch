@@ -1,6 +1,6 @@
 # Voice agents from scratch
 
-Build **real-time voice agents** from the ground up-no black boxes. This repo is a **step-by-step learning journey**: microphone → STT → LLM → TTS → speaker, plus tools, personality, and deployment.
+Build **real-time voice agents** from the ground up - no black boxes. This repo is a **step-by-step learning journey**: microphone → **STT** (speech-to-text) → **LLM** (language model) → **TTS** (text-to-speech) → speaker, plus tools, personality, and deployment.
 
 See **[PLAN.md](PLAN.md)** for the full roadmap, tech stack, and chapter outline.
 
@@ -29,6 +29,8 @@ If `llama-cpp-python` fails to install from source, use the [extra wheel index](
 
 - Chapter zero: [00_start_here/README.md](00_start_here/README.md)
 - Architecture: [00_start_here/architecture_overview.md](00_start_here/architecture_overview.md)
+- Terms (PCM, STT, TTS, VAD, …): [GLOSSARY.md](GLOSSARY.md)
+- Optional Apple Silicon tuning (Metal / CoreML): [OPTIMIZE.md](OPTIMIZE.md)
 
 ## License
 

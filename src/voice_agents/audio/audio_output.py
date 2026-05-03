@@ -12,7 +12,7 @@ import soundfile as sf
 
 
 def _remove_dc_mono(samples: np.ndarray) -> np.ndarray:
-    """Subtract mean — neural TTS sometimes has DC offset; fades then miss true zero (clicks)."""
+    """Subtract mean  -  neural TTS sometimes has DC offset; fades then miss true zero (clicks)."""
     x = np.asarray(samples, dtype=np.float32, copy=True)
     if x.size < 2:
         return x
@@ -21,13 +21,13 @@ def _remove_dc_mono(samples: np.ndarray) -> np.ndarray:
 
 
 def _apply_edge_fades(samples: np.ndarray, sample_rate: int, fade_ms: float = 8.0) -> np.ndarray:
-    """Fade in/out to reduce clicks. Long cosine fade-out — linear ramps still snap at the last sample."""
+    """Fade in/out to reduce clicks. Long cosine fade-out  -  linear ramps still snap at the last sample."""
     x = np.asarray(samples, dtype=np.float32, copy=True)
     n = int(x.shape[0])
     if n < 16:
         return x
     fade_in = max(1, int(sample_rate * fade_ms / 1000.0))
-    # Long cosine decay — residual cracks often trace to DC + short fades + tiny PortAudio blocks.
+    # Long cosine decay  -  residual cracks often trace to DC + short fades + tiny PortAudio blocks.
     fade_out = max(1, int(sample_rate * max(90.0, fade_ms * 4.5) / 1000.0))
     fade_in = min(fade_in, max(1, n - 2))
     fade_out = min(fade_out, max(1, n - fade_in))

@@ -1,4 +1,4 @@
-# `handling_partial_results.py` — code walkthrough
+# `handling_partial_results.py`  -  code walkthrough
 
 ## Purpose
 
@@ -15,7 +15,7 @@ uv run python 02_speech_to_text/handling_partial_results/handling_partial_result
 
 Default WAV is **`tmp/recorded.wav`** at the repo root (same convention as [`transcribe_once`](../transcribe_once/CODE.md)).
 
-**What you should see** — often a **ctranslate2** log line first, then one line per segment (green timestamps in the terminal). Example:
+**What you should see**  -  often a **ctranslate2** log line first, then one line per segment (green timestamps in the terminal). Example:
 
 ```text
 [2026-05-02 20:17:17.425] [ctranslate2] [thread …] [warning] The compute type inferred from the saved model is float16, but the target device or backend do not support efficient float16 computation. The model weights have been automatically converted to use the float32 compute type instead.
@@ -32,15 +32,15 @@ The **timestamp line** is the script’s real output. The **warning** is explain
 | **`soundfile.read`** | Decodes WAV (or other formats **soundfile** supports) to float samples. |
 | **`model.transcribe(audio, …)`** | Returns **`segments`** (generator) plus **`info`**; this script only uses **`segments`**. |
 
-[`streaming_stt.py`](../../src/voice_agents/stt/streaming_stt.py) wraps the same model API but merges text—compare implementations while reading.
+[`streaming_stt.py`](../../src/voice_agents/stt/streaming_stt.py) wraps the same model API but merges text - compare implementations while reading.
 
 ### ctranslate2 warning (float16 vs float32)
 
 **faster-whisper** uses **CTranslate2** under the hood. On many **CPU-only** or **no efficient FP16** setups, the library may print a **warning** that the model was stored as **float16** but the runtime will use **float32** instead.
 
 - **It is expected** and **safe to ignore** for this tutorial: you still get a valid transcript.
-- **Why it appears** — the backend picks a **compute type** the current device can run reliably; automatic conversion avoids silent broken math on hardware that does not like FP16.
-- **If you want to tune later** — you can pass explicit options to [`WhisperModel`](https://github.com/SYSTRAN/faster-whisper) (e.g. `compute_type`, `device`) to match your machine; [`TranscribeConfig`](../../src/voice_agents/stt/streaming_stt.py) in other scripts defaults to **`int8`** for speed/size tradeoffs on CPU.
+- **Why it appears**  -  the backend picks a **compute type** the current device can run reliably; automatic conversion avoids silent broken math on hardware that does not like FP16.
+- **If you want to tune later**  -  you can pass explicit options to [`WhisperModel`](https://github.com/SYSTRAN/faster-whisper) (e.g. `compute_type`, `device`) to match your machine; [`TranscribeConfig`](../../src/voice_agents/stt/streaming_stt.py) in other scripts defaults to **`int8`** for speed/size tradeoffs on CPU.
 
 ## Code walkthrough
 
@@ -78,7 +78,7 @@ for seg in segments:
     console.print(f"[green]{seg.start:.2f}–{seg.end:.2f}s[/] {seg.text.strip()}")
 ```
 
-Each **`seg`** covers part of the timeline—useful for subtitles, diarization-style hooks later, or debugging **where** Whisper heard something.
+Each **`seg`** covers part of the timeline - useful for subtitles, diarization-style hooks later, or debugging **where** Whisper heard something.
 
 ### Comparison with `transcribe_once`
 

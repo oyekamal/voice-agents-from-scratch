@@ -2,7 +2,7 @@
 
 This is intentionally boring: the model often needs **“what time is it?”** without you baking clocks into the prompt. The tool returns **`datetime.now()`** formatted with a **`strftime`** pattern. There is **no** network and **no** shell: a few lines of code you can audit in a code review.
 
-Because **`fmt`** has a **default** on the Pydantic model, the JSON Schema marks it as optional—handy when you smoke-test **`ToolRegistry.call`** with an empty **`{}`** for the time tool.
+Because **`fmt`** has a **default** on the Pydantic model, the JSON Schema marks it as optional - handy when you smoke-test **`ToolRegistry.call`** with an empty **`{}`** for the time tool.
 
 ---
 
@@ -33,7 +33,7 @@ class TimeParams(BaseModel):
 
 ### 2. Single-line implementation
 
-The entire behavior is **`strftime`**: no I/O, no globals, no timezone handling (local wall clock only). That makes failures almost impossible except for an invalid format string, which **`strftime`** would raise on—something you could map to a user-visible error in a larger agent.
+The entire behavior is **`strftime`**: no I/O, no globals, no timezone handling (local wall clock only). That makes failures almost impossible except for an invalid format string, which **`strftime`** would raise on - something you could map to a user-visible error in a larger agent.
 
 ```python
 def time_now(params: TimeParams) -> str:

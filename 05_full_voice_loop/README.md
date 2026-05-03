@@ -143,4 +143,4 @@ uv run python 05_full_voice_loop/debug_latency/debug_latency.py
 
 ## Next
 
-[Chapter 06 - Real-time systems](../06_real_time_systems/README.md) — raw-stack scripts (no `voice_agents`): [suggested order](../06_real_time_systems/README.md#suggested-order); full loop + Rich panel in [`turn_taking/turn_taking.py`](../06_real_time_systems/turn_taking/turn_taking.py).
+[Chapter 06 - Real-time systems](../06_real_time_systems/README.md)  -  raw-stack scripts (no `voice_agents`): [suggested order](../06_real_time_systems/README.md#suggested-order); full loop + Rich panel in [`turn_taking/turn_taking.py`](../06_real_time_systems/turn_taking/turn_taking.py).

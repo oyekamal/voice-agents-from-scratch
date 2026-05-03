@@ -1,10 +1,12 @@
 # Chapter 07 - Tools
 
+In a **voice** agent, the user’s words become text after **STT** (speech-to-text); from there the pipeline is the same as text chat: the LLM may still need **tools** (weather, time, search) for anything that is not in its weights or context. This chapter is about that **text-side** contract - validate JSON, run trusted code, return facts - so your voice stack stays safe and debuggable.
+
 **Why tools at all?** A language model only has weights and context window text; it cannot *know* today’s weather, your wall clock, or the result of `21 * 2` unless you **give it a path to the real world**. **Tools** are that path: the model proposes a **name** and **arguments** (usually JSON); your code **validates**, **runs** a small trusted function, and **returns** a string the model can read in the next turn. Without that contract, you either hallucinate facts or paste fragile natural language into shells.
 
 **Why Pydantic and JSON Schema?** The model’s output is untrusted text. You need a **hard boundary**: parse JSON, reject unknown fields and bad types, then call Python. **Pydantic** models are both runtime validators and **JSON Schema** generators - exactly what you attach to prompts so the model knows the **shape** of each tool. [`ToolRegistry`](../src/voice_agents/tools/registry.py) is the thin layer that keeps **name → schema → callable** in one place so dispatch stays boring and safe.
 
-**Why separate tool plumbing from the LLM?** Most of the chapter is **deterministic**: you can run **`calculator_tool`** and **`tool_router`** without loading a GGUF, and when something breaks you know whether it is **HTTP**, **validation**, or **dispatch**—not “bad JSON vs bad prompt vs small model.” In production the LLM is the **noisy client** of this API; here you learn the API first, then **[`llm_tool_loop`](./llm_tool_loop/llm_tool_loop.py)** shows **model → JSON → `reg.call` → summary** with the **full** registry by default (optional **`--calc-only`** for a minimal **calc** schema when debugging tiny models).
+**Why separate tool plumbing from the LLM?** Most of the chapter is **deterministic**: you can run **`calculator_tool`** and **`tool_router`** without loading a GGUF, and when something breaks you know whether it is **HTTP**, **validation**, or **dispatch** - not “bad JSON vs bad prompt vs small model.” In production the LLM is the **noisy client** of this API; here you learn the API first, then **[`llm_tool_loop`](./llm_tool_loop/llm_tool_loop.py)** shows **model → JSON → `reg.call` → summary** with the **full** registry by default (optional **`--calc-only`** for a minimal **calc** schema when debugging tiny models).
 
 This chapter builds that idea with small **example tools** (calculator, clock, weather, HTML “search”). **Unlike [chapter 06](../06_real_time_systems/README.md)** - where examples deliberately **omit** [`voice_agents`](../src/voice_agents/) so you see every audio thread and buffer - **here** the scripts **import** the library on purpose: the lesson is **how validation and dispatch stay centralized** so agent code does not sprawl.
 
@@ -103,7 +105,7 @@ uv run python 07_tools/weather_tool/weather_tool.py --lat 52.52 --lon 13.41
 
 **Source:** [`web_search_tool.py`](./web_search_tool/web_search_tool.py)  -  **Learning deeper:** [`web_search_tool/CODE.md`](./web_search_tool/CODE.md)
 
-**POST** to DuckDuckGo lite, then parses **`result-link`** / **`result-snippet`** rows (not raw page noise). Optional positional **`query`** or **`--query` / `-q`**; default **`python asyncio`**. Layout-specific—can return a “no blocks matched” message if HTML changes.
+**POST** to DuckDuckGo lite, then parses **`result-link`** / **`result-snippet`** rows (not raw page noise). Optional positional **`query`** or **`--query` / `-q`**; default **`python asyncio`**. Layout-specific - can return a “no blocks matched” message if HTML changes.
 
 ```bash
 uv run python 07_tools/web_search_tool/web_search_tool.py
