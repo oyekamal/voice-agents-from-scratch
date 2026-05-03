@@ -1,4 +1,4 @@
-# Chapter 10 — Deployment
+# Chapter 10 - Deployment
 
 **Goals:** **CLI** launcher (`voice-agent`), **WebSocket** server + minimal **browser client**, **Docker** skeleton.
 

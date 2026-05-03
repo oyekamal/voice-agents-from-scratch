@@ -36,11 +36,16 @@ def synthesize_to_wav(
     out_path: str | Path,
     *,
     config: TTSConfig,
+    kokoro: Kokoro | None = None,
 ) -> None:
-    """Synthesize ``text`` to a mono WAV file at Kokoro's sample rate."""
+    """Synthesize ``text`` to a mono WAV file at Kokoro's sample rate.
+
+    Pass a shared ``kokoro`` instance when synthesizing many chunks in a row
+    to avoid reloading the ONNX model each time (smoother playback on CPU).
+    """
     out_path = Path(out_path)
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    tts = Kokoro(config.model_path, config.voices_path)
+    tts = kokoro if kokoro is not None else Kokoro(config.model_path, config.voices_path)
     audio, sr = tts.create(
         text,
         voice=config.voice,

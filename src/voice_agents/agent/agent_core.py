@@ -2,12 +2,22 @@
 
 from __future__ import annotations
 
+import ctypes
 from collections.abc import Iterator
 from dataclasses import dataclass, field
 
-from llama_cpp import Llama
+from llama_cpp import Llama, llama_log_callback, llama_log_set
 
 from voice_agents.agent.prompt_engine import PromptEngine
+
+
+@llama_log_callback
+def _silence_llama_cpp_logs(level: int, text: object, user_data: object) -> None:
+    """Drop llama.cpp stderr spam (e.g. n_ctx vs n_ctx_train); exceptions still propagate in Python."""
+    del level, text, user_data
+
+
+llama_log_set(_silence_llama_cpp_logs, ctypes.c_void_p())
 
 
 # Qwen2.5 instruct end-of-message token (string form for raw prompts)

@@ -26,5 +26,5 @@ class FallbackReport:
 
 def log_failure(console: Console | None, report: FallbackReport) -> None:
     c = console or Console()
-    extra = f" — {report.detail!r}" if report.detail is not None else ""
+    extra = f" - {report.detail!r}" if report.detail is not None else ""
     c.print(f"[red][{report.stage.value}][/] {report.message}{extra}")

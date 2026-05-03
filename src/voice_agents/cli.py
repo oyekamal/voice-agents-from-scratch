@@ -16,13 +16,14 @@ console = Console()
 ROOT = Path(__file__).resolve().parents[2]
 
 _CHAPTERS: list[tuple[str, str]] = [
-    ("00 — First voice agent", "00_start_here/run_first_voice_agent.py"),
-    ("00 — Download models", "00_start_here/download_models.py"),
-    ("01 — Mic (3s record)", "01_audio_io/mic_input.py"),
-    ("01 — Play WAV", "01_audio_io/speaker_output.py"),
-    ("05 — Blocking voice loop", "05_full_voice_loop/blocking_voice_agent.py"),
-    ("05 — Latency debug", "05_full_voice_loop/debug_latency.py"),
-    ("10 — WebSocket server", "10_deployment/websocket_server.py"),
+    ("00 - First voice agent", "00_start_here/run_first_voice_agent.py"),
+    ("00 - Download models", "00_start_here/download_models.py"),
+    ("01 - Mic (3s record)", "01_audio_io/mic_input/mic_input.py"),
+    ("01 - Play WAV", "01_audio_io/speaker_output/speaker_output.py"),
+    ("05 - Blocking voice loop", "05_full_voice_loop/blocking_voice_agent/blocking_voice_agent.py"),
+    ("05 - Streaming voice agent", "05_full_voice_loop/streaming_voice_agent/streaming_voice_agent.py"),
+    ("05 - Latency debug", "05_full_voice_loop/debug_latency/debug_latency.py"),
+    ("10 - WebSocket server", "10_deployment/websocket_server.py"),
 ]
 
 
@@ -45,7 +46,7 @@ def _interactive_menu() -> None:
 
 @app.callback(invoke_without_command=True)
 def cli(ctx: typer.Context) -> None:
-    """Voice agents from scratch — tutorial launcher."""
+    """Voice agents from scratch - tutorial launcher."""
     if ctx.invoked_subcommand is None:
         _interactive_menu()
 

@@ -27,7 +27,7 @@ KOKORO_VOICES_URL = (
     "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/voices-v1.0.bin"
 )
 
-# Qwen2.5 0.5B Q4 — small, fits tutorial machines
+# Qwen2.5 0.5B Q4 - small, fits tutorial machines
 LLM_REPO = "Qwen/Qwen2.5-0.5B-Instruct-GGUF"
 LLM_FILE = "qwen2.5-0.5b-instruct-q4_k_m.gguf"
 
