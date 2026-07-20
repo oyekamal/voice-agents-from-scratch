@@ -32,6 +32,7 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
+import sounddevice as sd
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -41,12 +42,41 @@ if str(_CH09) not in sys.path:
     sys.path.insert(0, str(_CH09))
 from llama_gguf import resolve_llama_instruct_gguf  # noqa: E402
 
+_CH06 = Path(__file__).resolve().parent.parent / "06_real_time_systems"
+if str(_CH06) not in sys.path:
+    sys.path.insert(0, str(_CH06))
+from _audio_chunks import play_cancellable_stream  # noqa: E402
+
 from voice_agents.agent.agent_core import AgentCore  # noqa: E402
 from voice_agents.agent.prompt_engine import PromptEngine  # noqa: E402
 from voice_agents.audio.audio_input import AudioInputConfig, record_seconds  # noqa: E402
-from voice_agents.audio.audio_output import play_float_mono  # noqa: E402
 from voice_agents.stt.streaming_stt import TranscribeConfig, transcribe_samples  # noqa: E402
 from kokoro_onnx import Kokoro  # noqa: E402
+
+# Barge-in tuning — ported from 06_real_time_systems/duplex_conversation.py,
+# the repo's own reference implementation for this exact problem (it just
+# wasn't wired into voice_tutor). See that file's comments for the reasoning
+# behind each constant; kept identical here rather than re-guessing them.
+SR_MIC = 16_000
+MIC_BLOCK = 512
+LEAD_IN_S = 1.25          # ignore mic for this long after speech starts (own TTS bleed)
+SUSTAIN_BLOCKS = 4
+THRESH_RMS = 0.042
+PEAK_FACTOR = 2.35
+HOLD_FRAC = 0.38
+SHOUT_PEAK = 0.13
+SHOUT_BLOCKS = 3
+POST_BARGE_IN_CAPTURE_S = 3.0  # keep recording this long after an interrupt is detected
+
+
+def _rms_energy(block: np.ndarray) -> float:
+    v = block.reshape(-1).astype(np.float32)
+    return float(np.sqrt(np.mean(np.square(v))))
+
+
+def _peak_abs(block: np.ndarray) -> float:
+    v = block.reshape(-1).astype(np.float32)
+    return float(np.max(np.abs(v)))
 
 ROOT = Path(__file__).resolve().parents[1]
 WHISPER_ROOT = ROOT / "models" / "whisper"
@@ -101,6 +131,85 @@ def _voice_loop() -> None:
 
     _emit("ready")
 
+    def _speak_reply(text: str, turn: int, t_stt: float, t_recorded: float) -> str | None:
+        """Stream the LLM reply through Kokoro with mic barge-in detection.
+
+        Returns the transcribed text of what the user said if they interrupted
+        (None if the reply played to completion without interruption).
+        """
+        barge_in = threading.Event()
+        mic_frames: list[np.ndarray] = []
+        sustain = {"n": 0}
+        shout = {"n": 0}
+        speaking_started_at = time.monotonic()
+
+        def mic_cb(indata, frames, t, status) -> None:  # noqa: ARG001
+            mic_frames.append(indata.copy())
+            if time.monotonic() - speaking_started_at < LEAD_IN_S or barge_in.is_set():
+                return
+            r, pk = _rms_energy(indata), _peak_abs(indata)
+            loud = r >= THRESH_RMS or pk >= THRESH_RMS * PEAK_FACTOR
+            if loud:
+                sustain["n"] += 1
+            elif r < THRESH_RMS * HOLD_FRAC:
+                sustain["n"] = 0
+            shout["n"] = shout["n"] + 1 if pk >= SHOUT_PEAK else 0
+            if sustain["n"] >= SUSTAIN_BLOCKS or shout["n"] >= SHOUT_BLOCKS:
+                barge_in.set()
+                _emit("state", value="interrupted", turn=turn)
+
+        buf = ""
+        full_reply = ""
+        t_first_token: float | None = None
+
+        with sd.InputStream(
+            channels=1, samplerate=SR_MIC, blocksize=MIC_BLOCK, callback=mic_cb, dtype="float32"
+        ):
+            for piece in agent.stream_tokens(text, engine=engine, max_tokens=256):
+                if barge_in.is_set():
+                    break
+                if t_first_token is None:
+                    t_first_token = time.perf_counter()
+                    _emit("llm_first_token", turn=turn, ms=round((t_first_token - t_stt) * 1000))
+                buf += piece
+                full_reply += piece
+                _emit("llm_token", turn=turn, token=piece)
+                while not barge_in.is_set():
+                    m = _SENTENCE_END.search(buf)
+                    if not m:
+                        break
+                    chunk = buf[: m.end()].strip()
+                    buf = buf[m.end():]
+                    if chunk:
+                        samples, ksr = k.create(chunk, voice=voice, speed=1.0)
+                        play_cancellable_stream(samples.astype(np.float32), int(ksr), cancel=barge_in)
+                if not barge_in.is_set() and len(buf) > 200:
+                    chunk = buf.strip()
+                    buf = ""
+                    if chunk:
+                        samples, ksr = k.create(chunk, voice=voice, speed=1.0)
+                        play_cancellable_stream(samples.astype(np.float32), int(ksr), cancel=barge_in)
+            if not barge_in.is_set() and buf.strip():
+                samples, ksr = k.create(buf.strip(), voice=voice, speed=1.0)
+                play_cancellable_stream(samples.astype(np.float32), int(ksr), cancel=barge_in)
+
+            if barge_in.is_set():
+                time.sleep(POST_BARGE_IN_CAPTURE_S)  # keep capturing the rest of what they're saying
+
+        t_done = time.perf_counter()
+        _emit("turn_complete", turn=turn, reply=full_reply.strip(), total_ms=round((t_done - t_recorded) * 1000))
+
+        if not barge_in.is_set():
+            return None
+
+        _emit("state", value="thinking", turn=turn)
+        captured = (
+            np.concatenate([f.squeeze() for f in mic_frames]) if mic_frames else np.zeros(0, dtype=np.float32)
+        )
+        interrupt_text = transcribe_samples(captured, SR_MIC, config=tcfg, whisper_model=whisper).strip()
+        _emit("transcript", turn=turn, text=interrupt_text or "(no speech detected)", stt_ms=0, interrupted=True)
+        return interrupt_text or None
+
     turn = 0
     while True:
         turn += 1
@@ -120,42 +229,16 @@ def _voice_loop() -> None:
             break
 
         _emit("state", value="speaking", turn=turn)
-        buf = ""
-        full_reply = ""
-        t_first_token: float | None = None
-        for piece in agent.stream_tokens(text, engine=engine, max_tokens=256):
-            if t_first_token is None:
-                t_first_token = time.perf_counter()
-                _emit("llm_first_token", turn=turn, ms=round((t_first_token - t_stt) * 1000))
-            buf += piece
-            full_reply += piece
-            _emit("llm_token", turn=turn, token=piece)
-            while True:
-                m = _SENTENCE_END.search(buf)
-                if not m:
-                    break
-                chunk = buf[: m.end()].strip()
-                buf = buf[m.end():]
-                if chunk:
-                    samples, ksr = k.create(chunk, voice=voice, speed=1.0)
-                    play_float_mono(samples, int(ksr))
-            if len(buf) > 200:
-                chunk = buf.strip()
-                buf = ""
-                if chunk:
-                    samples, ksr = k.create(chunk, voice=voice, speed=1.0)
-                    play_float_mono(samples, int(ksr))
-        if buf.strip():
-            samples, ksr = k.create(buf.strip(), voice=voice, speed=1.0)
-            play_float_mono(samples, int(ksr))
-
-        t_done = time.perf_counter()
-        _emit(
-            "turn_complete",
-            turn=turn,
-            reply=full_reply.strip(),
-            total_ms=round((t_done - t_recorded) * 1000),
-        )
+        # A barge-in mid-reply immediately becomes the next thing to respond to
+        # (one level — if THAT reply also gets interrupted, we fall back to the
+        # normal listen-record step next iteration rather than chaining forever).
+        interrupt_text = _speak_reply(text, turn, t_stt, t_recorded)
+        if interrupt_text:
+            if interrupt_text.lower() in {"quit", "exit", "goodbye"}:
+                _emit("status", text="Session ended.")
+                break
+            _emit("state", value="speaking", turn=turn)
+            _speak_reply(interrupt_text, turn, time.perf_counter(), time.perf_counter())
 
 
 @asynccontextmanager
