@@ -122,6 +122,21 @@ Each numbered folder is a chapter. Inside lesson folders you typically find a **
 | **[07_tools](07_tools/)** | Tool routing, calculator, time, weather, web search, LLM tool loops |
 | **[08_personality](08_personality/)** | Style and emotional variation |
 | **[09_projects](09_projects/)** | Larger compositions (CLI assistant, tutor, interviewer, …) |
+| **[10_debug_ui](10_debug_ui/)** | Live browser debug console for the voice tutor, with mic barge-in |
+
+### 10_debug_ui — live browser debug console
+
+Everything the terminal-based lessons print to the console — state changes, what STT heard, LLM tokens as they stream, TTS timing, per-turn latency — broadcast over a WebSocket to a browser page instead, so you can *see* what the agent is doing while you talk to it:
+
+![Voice Tutor debug console screenshot](diagrams/debug-ui.png)
+
+It also wires the barge-in pattern from `06_real_time_systems/duplex_conversation.py` (mic RMS/peak detection with a lead-in window) into the tutor's speaking phase — interrupt it mid-reply by just talking, same as `duplex_conversation`, but now with the tutor's actual LLM+TTS loop instead of a canned clip — and adds a **Stop** button so you don't have to `Ctrl+C` a background process from a terminal.
+
+```bash
+uv sync --extra serve
+uv run python 10_debug_ui/voice_tutor_ui.py
+# open http://localhost:8000
+```
 
 Further reading:
 
