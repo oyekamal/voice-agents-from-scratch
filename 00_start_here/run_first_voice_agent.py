@@ -127,6 +127,8 @@ def main() -> None:
         model_size="tiny.en",
         download_root=str(WHISPER_ROOT),
         language="en",
+        device="cpu",  # device="auto" picked CUDA on this machine, but the
+        # cuBLAS runtime isn't installed here — tiny.en is fast enough on CPU.
     )
     transcribe_samples(np.zeros(16_000, dtype=np.float32), 16_000, config=stt_cfg)
 

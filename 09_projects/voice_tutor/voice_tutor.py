@@ -152,7 +152,11 @@ def main() -> None:
         )
         raise SystemExit(1)
 
-    tcfg = TranscribeConfig(download_root=str(WHISPER_ROOT))
+    tcfg = TranscribeConfig(
+        model_size="base.en",  # tiny.en garbled several real utterances in live testing
+        download_root=str(WHISPER_ROOT),
+        device="cpu",  # device="auto" picks CUDA here, but cuBLAS isn't installed
+    )
     audio_cfg = AudioInputConfig()
 
     agent, engine, k, voice, whisper = _preload_everything(

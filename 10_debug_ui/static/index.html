@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Voice Tutor — Debug Console</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; font-family: ui-monospace, "SF Mono", Consolas, monospace;
+    background: #0d1117; color: #c9d1d9; height: 100vh; display: flex; flex-direction: column;
+  }
+  header {
+    padding: 12px 20px; background: #161b22; border-bottom: 1px solid #30363d;
+    display: flex; align-items: center; gap: 16px;
+  }
+  header h1 { font-size: 15px; margin: 0; color: #e6edf3; font-weight: 600; }
+  #state {
+    padding: 4px 12px; border-radius: 999px; font-size: 12px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.05em;
+  }
+  #state.listening { background: #1f6feb33; color: #58a6ff; }
+  #state.thinking   { background: #d2992233; color: #e3b341; }
+  #state.speaking   { background: #23863633; color: #3fb950; }
+  #state.idle       { background: #30363d; color: #8b949e; }
+  #turn-label { font-size: 12px; color: #8b949e; }
+  main { flex: 1; overflow-y: auto; padding: 16px 20px; }
+  .row { margin-bottom: 10px; display: flex; gap: 10px; align-items: baseline; }
+  .row .ts { color: #6e7681; font-size: 11px; min-width: 70px; }
+  .row .tag {
+    font-size: 11px; font-weight: 700; text-transform: uppercase; min-width: 90px;
+    padding: 1px 6px; border-radius: 4px; text-align: center;
+  }
+  .tag.you       { background: #1f6feb33; color: #58a6ff; }
+  .tag.tutor     { background: #23863633; color: #3fb950; }
+  .tag.status    { background: #30363d; color: #8b949e; }
+  .tag.error     { background: #da363333; color: #f85149; }
+  .tag.latency   { background: #8957e533; color: #a371f7; }
+  .row .text { flex: 1; line-height: 1.5; word-break: break-word; }
+  .row .text.streaming { color: #7ee787; }
+  #latency-bar {
+    display: flex; gap: 16px; padding: 8px 20px; background: #161b22;
+    border-top: 1px solid #30363d; font-size: 11px; color: #8b949e;
+  }
+  #latency-bar b { color: #e6edf3; }
+</style>
+</head>
+<body>
+  <header>
+    <h1>🎙️ Voice Tutor — Debug Console</h1>
+    <span id="state" class="idle">idle</span>
+    <span id="turn-label"></span>
+  </header>
+  <main id="log"></main>
+  <div id="latency-bar">
+    <span>STT: <b id="stt-ms">–</b></span>
+    <span>LLM first token: <b id="llm-ms">–</b></span>
+    <span>Total turn: <b id="total-ms">–</b></span>
+  </div>
+
+<script>
+const log = document.getElementById("log");
+const stateEl = document.getElementById("state");
+const turnLabel = document.getElementById("turn-label");
+let currentTutorRow = null;
+
+function fmtTime(ts) {
+  const d = new Date(ts * 1000);
+  return d.toLocaleTimeString([], { hour12: false }) + "." + String(d.getMilliseconds()).padStart(3, "0");
+}
+
+function addRow(tag, text, ts) {
+  const row = document.createElement("div");
+  row.className = "row";
+  row.innerHTML = `<span class="ts">${fmtTime(ts)}</span><span class="tag ${tag}">${tag}</span><span class="text"></span>`;
+  row.querySelector(".text").textContent = text;
+  log.appendChild(row);
+  log.scrollTop = log.scrollHeight;
+  return row;
+}
+
+function connect() {
+  const ws = new WebSocket(`ws://${location.host}/ws`);
+  ws.onopen = () => addRow("status", "connected", Date.now() / 1000);
+  ws.onclose = () => { addRow("status", "disconnected — retrying in 2s", Date.now() / 1000); setTimeout(connect, 2000); };
+  ws.onmessage = (evt) => {
+    const e = JSON.parse(evt.data);
+    switch (e.type) {
+      case "status":
+        addRow("status", e.text, e.ts);
+        break;
+      case "error":
+        addRow("error", e.text, e.ts);
+        break;
+      case "ready":
+        addRow("status", "all models loaded — ready to talk", e.ts);
+        break;
+      case "state":
+        stateEl.textContent = e.value;
+        stateEl.className = e.value;
+        turnLabel.textContent = "turn " + e.turn;
+        if (e.value === "listening") addRow("status", `recording ${e.seconds}s… speak now`, e.ts);
+        break;
+      case "transcript":
+        addRow("you", e.text, e.ts);
+        document.getElementById("stt-ms").textContent = e.stt_ms + " ms";
+        currentTutorRow = null;
+        break;
+      case "llm_first_token":
+        document.getElementById("llm-ms").textContent = e.ms + " ms";
+        break;
+      case "llm_token":
+        if (!currentTutorRow) {
+          currentTutorRow = addRow("tutor", "", e.ts);
+          currentTutorRow.querySelector(".text").classList.add("streaming");
+        }
+        currentTutorRow.querySelector(".text").textContent += e.token;
+        log.scrollTop = log.scrollHeight;
+        break;
+      case "turn_complete":
+        if (currentTutorRow) currentTutorRow.querySelector(".text").classList.remove("streaming");
+        document.getElementById("total-ms").textContent = e.total_ms + " ms";
+        addRow("latency", `turn ${e.turn} done in ${e.total_ms} ms`, e.ts);
+        break;
+    }
+  };
+}
+connect();
+</script>
+</body>
+</html>
