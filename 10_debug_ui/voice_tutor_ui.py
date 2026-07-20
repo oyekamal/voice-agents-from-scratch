@@ -269,6 +269,25 @@ async def ws_endpoint(websocket: WebSocket) -> None:
         _clients.discard(websocket)
 
 
+@app.post("/stop")
+async def stop() -> dict[str, str]:
+    """Hard-stop the whole process.
+
+    The voice loop is a blocking thread (record_seconds/LLM streaming/TTS
+    playback all block for real seconds at a time) — a cooperative flag it
+    only checks between turns could sit unresponsive for a while mid-turn.
+    Killing the process outright is the reliable "stop it now" the UI's Stop
+    button needs. Broadcast a final status first so the browser shows why
+    the connection is about to drop, then exit after a short delay so that
+    event actually reaches the client before the process dies.
+    """
+    _emit("status", text="Stopping — process exiting…")
+    await asyncio.sleep(0.2)  # let _drain_events flush the event above before we die
+    import os
+
+    os._exit(0)
+
+
 async def _drain_events() -> None:
     while True:
         try:
